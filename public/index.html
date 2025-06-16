@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TarynxAI</title>
+    <link rel="stylesheet" href="/css/styles.css">
+</head>
+
+<body>
+    <div class="chat-container">
+        <div class="chat-header">
+            <h1>TarynxAI</h1>
+            <div class="model-selector">
+                <select id="model-select">
+                    <option value="openai/gpt-3.5-turbo">General Purpose</option>
+                    <!--<option value="deepseek/deepseek-r1:free">Coding</option>
+                    <option value="anthropic/claude-2">Summarization</option>
+                    <option value="google/palm-2-chat-bison">Reasoning</option>-->
+                </select>
+            </div>
+        </div>
+        <div class="chat-messages" id="chat-messages"></div>
+        <div class="chat-input">
+            <textarea id="user-input" placeholder="Type your message here..." rows="1"></textarea>
+            <button id="send-button">Send</button>
+        </div>
+    </div>
+    <script src="/js/script.js"></script>
+</body>
+
+</html>

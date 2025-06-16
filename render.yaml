@@ -1,0 +1,15 @@
+services:
+  - type: web
+    name: chatbot
+    env: node
+    buildCommand: npm install
+    startCommand: npm start
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: OPENROUTER_API_KEY
+        sync: false
+      - key: SITE_URL
+        sync: false
+      - key: APP_NAME
+        sync: false 

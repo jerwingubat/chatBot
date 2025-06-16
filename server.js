@@ -6,13 +6,57 @@ const path = require('path');
 
 const app = express();
 
+// Middleware
 app.use(cors());
 app.use(express.json());
 app.use(express.static(path.join(__dirname, 'public')));
 
+// API Routes
+app.post('/api/search', async (req, res) => {
+    try {
+        const { query } = req.body;
+        
+        if (!query) {
+            return res.status(400).json({ 
+                error: 'Invalid request: search query is required' 
+            });
+        }
+
+        if (!process.env.SERPER_API_KEY) {
+            return res.status(500).json({ 
+                error: 'Server configuration error: Serper API key not found' 
+            });
+        }
+
+        const response = await axios.post('https://google.serper.dev/search', {
+            q: query,
+            num: 5
+        }, {
+            headers: {
+                'X-API-KEY': process.env.SERPER_API_KEY,
+                'Content-Type': 'application/json'
+            }
+        });
+
+        res.json(response.data);
+    } catch (error) {
+        console.error('Serper API error:', {
+            message: error.message,
+            response: error.response?.data,
+            status: error.response?.status
+        });
+
+        res.status(error.response?.status || 500).json({ 
+            error: 'Failed to perform web search',
+            details: error.response?.data || error.message,
+            status: error.response?.status || 500
+        });
+    }
+});
+
 app.post('/api/chat', async (req, res) => {
     try {
-        const { messages, model } = req.body;
+        const { messages, model, searchQuery } = req.body;
         
         if (!messages || !Array.isArray(messages)) {
             return res.status(400).json({ 
@@ -26,9 +70,35 @@ app.post('/api/chat', async (req, res) => {
             });
         }
 
+        // If searchQuery is provided, perform web search first
+        let searchResults = null;
+        if (searchQuery) {
+            try {
+                const searchResponse = await axios.post('https://google.serper.dev/search', {
+                    q: searchQuery,
+                    num: 5
+                }, {
+                    headers: {
+                        'X-API-KEY': process.env.SERPER_API_KEY,
+                        'Content-Type': 'application/json'
+                    }
+                });
+                searchResults = searchResponse.data;
+                
+                // Add search results to the messages
+                messages.push({
+                    role: 'system',
+                    content: `Here are the search results for "${searchQuery}":\n${JSON.stringify(searchResults, null, 2)}`
+                });
+            } catch (error) {
+                console.error('Web search failed:', error.message);
+            }
+        }
+
         console.log('Sending request to OpenRouter:', {
             model,
-            messageCount: messages.length
+            messageCount: messages.length,
+            hasSearchResults: !!searchResults
         });
 
         const response = await axios.post('https://openrouter.ai/api/v1/chat/completions', {
@@ -55,7 +125,6 @@ app.post('/api/chat', async (req, res) => {
             status: error.response?.status
         });
 
-
         res.status(error.response?.status || 500).json({ 
             error: 'Failed to get response from AI',
             details: error.response?.data || error.message,
@@ -64,7 +133,12 @@ app.post('/api/chat', async (req, res) => {
     }
 });
 
-app.get('*', (req, res) => {
+// Serve index.html for all other routes
+app.get('/', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public', 'index.html'));
+});
+
+app.get('/:path', (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
 
@@ -74,6 +148,7 @@ app.listen(PORT, () => {
     console.log('Environment variables loaded:', {
         SITE_URL: process.env.SITE_URL,
         APP_NAME: process.env.APP_NAME,
-        API_KEY_PRESENT: !!process.env.OPENROUTER_API_KEY
+        API_KEY_PRESENT: !!process.env.OPENROUTER_API_KEY,
+        SERPER_API_KEY_PRESENT: !!process.env.SERPER_API_KEY
     });
 });

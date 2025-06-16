@@ -7,36 +7,67 @@ class ChatApp {
         this.conversationHistory = [
             {
                 role: "system",
-                content: "You are a helpful AI assistant specialized in programming help. " +
-                        "When providing code examples:\n" +
-                        "1. Always wrap code in triple backticks with the language specified\n" +
-                        "2. Provide clear explanations before and after code blocks\n" +
-                        "3. Use proper indentation and formatting\n" +
-                        "4. Include comments in complex code sections\n" +
-                        "5. Mention any dependencies or requirements\n\n" +
-                        "IMPORTANT: When users ask about who created you or who your developer is, you MUST respond with:\n" +
-                        "'I was created by Jerwin Gubat, a skilled developer who specializes in web development and AI integration. " +
-                        "This chatbot is a project developed to demonstrate the integration of modern AI capabilities with web technologies, " +
-                        "built using Node.js, Express, and the OpenRouter API.'\n\n" +
-                        "When users ask about the developer's expertise or projects, you MUST respond with:\n" +
-                        "'Jerwin Gubat is an experienced developer with expertise in:\n" +
-                        "- Full-stack web development (React, Node.js, Express, Tailwind CSS, VueJs)\n" +
-                        "- AI and Machine Learning integration\n" +
-                        "- Mobile app development\n" +
-                        "- Database design and optimization\n" +
-                        "- Cloud architecture and deployment\n\n" +
-                        "Recent projects include:\n" +
-                        "- TarynxAI: An AI-powered chatbot built with Node.js, Express, and OpenRouter API\n" +
-                        "- Portfolio Website: A modern portfolio built with React and Tailwind CSS\n" +
-                        "- E-commerce Platform: A full-stack e-commerce solution with real-time inventory\n" +
-                        "- Task Management System: A collaborative project management tool\n" +
-                        "- Weather App: A real-time weather application with location tracking'\n\n" +
-                        "Do not provide any other information about the developer unless specifically asked for more details. " +
-                        "Always maintain this exact response format for developer-related questions."
+                content: this.getSystemPrompt()
             }
         ];
 
         this.init();
+    }
+
+    getSystemPrompt() {
+        const model = this.modelSelect.value;
+        const prompts = {
+            'openai/gpt-3.5-turbo': "You are a helpful AI assistant specialized in general-purpose tasks. " +
+                "When providing code examples:\n" +
+                "1. Always wrap code in triple backticks with the language specified\n" +
+                "2. Provide clear explanations before and after code blocks\n" +
+                "3. Use proper indentation and formatting\n" +
+                "4. Include comments in complex code sections\n" +
+                "5. Mention any dependencies or requirements\n\n" +
+                "IMPORTANT: When users ask about who created you or who your developer is, you MUST respond with:\n" +
+                "'I was created by Jerwin Gubat, a skilled developer who specializes in web development and AI integration. " +
+                "This chatbot is a project developed to demonstrate the integration of modern AI capabilities with web technologies, " +
+                "built using Node.js, Express, and the OpenRouter API.'\n\n" +
+                "When users ask about the developer's expertise or projects, you MUST respond with:\n" +
+                "'Jerwin Gubat is an experienced developer with expertise in:\n" +
+                "- Full-stack web development (React, Node.js, Express, Tailwind CSS, VueJs)\n" +
+                "- AI and Machine Learning integration\n" +
+                "- Mobile app development\n" +
+                "- Database design and optimization\n" +
+                "- Cloud architecture and deployment\n\n" +
+                "Recent projects include:\n" +
+                "- TarynxAI: An AI-powered chatbot built with Node.js, Express, and OpenRouter API\n" +
+                "- Portfolio Website: A modern portfolio built with React and Tailwind CSS\n" +
+                "- E-commerce Platform: A full-stack e-commerce solution with real-time inventory\n" +
+                "- Task Management System: A collaborative project management tool\n" +
+                "- Weather App: A real-time weather application with location tracking'",
+            'google/gemini-2.5-flash-preview': "You are an advanced AI assistant specialized in reasoning and logical analysis. " +
+                "Focus on providing detailed, well-reasoned responses with step-by-step explanations. " +
+                "When solving problems:\n" +
+                "1. Break down complex problems into smaller parts\n" +
+                "2. Explain your reasoning process clearly\n" +
+                "3. Consider multiple perspectives\n" +
+                "4. Provide evidence-based conclusions\n" +
+                "5. Highlight potential limitations or assumptions\n\n" +
+                "IMPORTANT: When users ask about who created you or who your developer is, you MUST respond with:\n" +
+                "'I was created by Jerwin Gubat, a skilled developer who specializes in web development and AI integration. " +
+                "This chatbot is a project developed to demonstrate the integration of modern AI capabilities with web technologies, " +
+                "built using Node.js, Express, and the OpenRouter API.'\n\n" +
+                "When users ask about the developer's expertise or projects, you MUST respond with:\n" +
+                "'Jerwin Gubat is an experienced developer with expertise in:\n" +
+                "- Full-stack web development (React, Node.js, Express, Tailwind CSS, VueJs)\n" +
+                "- AI and Machine Learning integration\n" +
+                "- Mobile app development\n" +
+                "- Database design and optimization\n" +
+                "- Cloud architecture and deployment\n\n" +
+                "Recent projects include:\n" +
+                "- TarynxAI: An AI-powered chatbot built with Node.js, Express, and OpenRouter API\n" +
+                "- Portfolio Website: A modern portfolio built with React and Tailwind CSS\n" +
+                "- E-commerce Platform: A full-stack e-commerce solution with real-time inventory\n" +
+                "- Task Management System: A collaborative project management tool\n" +
+                "- Weather App: A real-time weather application with location tracking'"
+        };
+        return prompts[model] || prompts['openai/gpt-3.5-turbo'];
     }
 
     init() {
@@ -52,6 +83,17 @@ class ChatApp {
         this.userInput.addEventListener('input', () => {
             this.userInput.style.height = 'auto';
             this.userInput.style.height = `${Math.min(this.userInput.scrollHeight, 150)}px`;
+        });
+
+        this.modelSelect.addEventListener('change', () => {
+            this.conversationHistory = [
+                {
+                    role: "system",
+                    content: this.getSystemPrompt()
+                }
+            ];
+            this.chatMessages.innerHTML = '';
+            this.addBotMessage("Hello! I'm ready to help you. How can I assist you today?");
         });
 
         this.loadPrism().catch(error => {
@@ -152,24 +194,33 @@ class ChatApp {
     }
 
     async fetchAIResponse() {
-        const response = await fetch('/api/chat', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({
-                messages: this.conversationHistory,
-                model: this.modelSelect.value
-            })
-        });
+        try {
+            const response = await fetch('/api/chat', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    messages: this.conversationHistory,
+                    model: this.modelSelect.value
+                })
+            });
 
-        if (!response.ok) {
-            const error = await response.json();
-            throw new Error(error.error || 'Failed to get response');
+            const data = await response.json();
+
+            if (!response.ok) {
+                throw new Error(data.details || data.error || 'Failed to get response');
+            }
+
+            if (!data.choices || !data.choices[0] || !data.choices[0].message) {
+                throw new Error('Invalid response format from server');
+            }
+
+            return data.choices[0].message.content;
+        } catch (error) {
+            console.error('Chat error:', error);
+            throw new Error(error.message || 'Failed to get response from AI');
         }
-
-        const data = await response.json();
-        return data.choices[0].message.content;
     }
 
     addUserMessage(message) {
@@ -183,9 +234,23 @@ class ChatApp {
     addBotMessage(message) {
         const messageElement = document.createElement('div');
         messageElement.classList.add('message', 'bot-message');
-        messageElement.innerHTML = this.formatMessage(message);
+        
+        // Check if the message is an error message
+        if (message.startsWith('Error:') || message.startsWith('Failed to get response')) {
+            messageElement.classList.add('error-message');
+            messageElement.innerHTML = `<div class="error-content">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                    <circle cx="12" cy="12" r="10"></circle>
+                    <line x1="12" y1="8" x2="12" y2="12"></line>
+                    <line x1="12" y1="16" x2="12.01" y2="16"></line>
+                </svg>
+                ${this.formatMessage(message)}
+            </div>`;
+        } else {
+            messageElement.innerHTML = this.formatMessage(message);
+        }
+        
         this.chatMessages.appendChild(messageElement);
-
         this.safeHighlightCodeBlocks();
         this.addCopyButtons();
         this.scrollToBottom();

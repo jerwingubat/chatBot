@@ -6,12 +6,10 @@ const path = require('path');
 
 const app = express();
 
-// Middleware
 app.use(cors());
 app.use(express.json());
 app.use(express.static(path.join(__dirname, 'public')));
 
-// API Routes
 app.post('/api/search', async (req, res) => {
     try {
         const { query } = req.body;
@@ -70,7 +68,6 @@ app.post('/api/chat', async (req, res) => {
             });
         }
 
-        // If searchQuery is provided, perform web search first
         let searchResults = null;
         if (searchQuery) {
             try {
@@ -85,7 +82,6 @@ app.post('/api/chat', async (req, res) => {
                 });
                 searchResults = searchResponse.data;
                 
-                // Add search results to the messages
                 messages.push({
                     role: 'system',
                     content: `Here are the search results for "${searchQuery}":\n${JSON.stringify(searchResults, null, 2)}`
@@ -133,7 +129,6 @@ app.post('/api/chat', async (req, res) => {
     }
 });
 
-// Serve index.html for all other routes
 app.get('/', (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });

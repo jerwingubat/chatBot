@@ -195,7 +195,6 @@ class ChatApp {
         const codeBlocks = [];
         let codeBlockIndex = 0;
 
-        // Extract and replace code blocks with placeholders
         message = message.replace(/```(\w*)\n([\s\S]*?)\n```/g, (match, language, code) => {
             const langClass = language ? `language-${language.toLowerCase()}` : '';
             const html = `<div class="code-block">
@@ -214,14 +213,12 @@ class ChatApp {
             return `__CODEBLOCK${codeBlockIndex++}__`;
         });
 
-        // Process other markdown (bold, italic, inline code, line breaks)
         message = message
-            .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>') // bold
-            .replace(/\*(.*?)\*/g, '<em>$1</em>') // italic
-            .replace(/`(.*?)`/g, '<code class="inline-code">$1</code>') // inline code
-            .replace(/\n/g, '<br>'); // line breaks (outside code blocks)
+            .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+            .replace(/\*(.*?)\*/g, '<em>$1</em>')
+            .replace(/`(.*?)`/g, '<code class="inline-code">$1</code>')
+            .replace(/\n/g, '<br>');
 
-        // Restore code blocks from placeholders
         codeBlocks.forEach((block, index) => {
             message = message.replace(`__CODEBLOCK${index}__`, block);
         });

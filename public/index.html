@@ -11,20 +11,23 @@
 <body>
     <div class="chat-container">
         <div class="chat-header">
-            <h1>TarynxAI</h1>
+            <h1>Tarynx-AI</h1>
             <div class="model-selector">
                 <select id="model-select">
-                    <option value="openai/gpt-3.5-turbo">General Purpose</option>
-                    <!--<option value="deepseek/deepseek-r1:free">Coding</option>
-                    <option value="anthropic/claude-2">Summarization</option>
-                    <option value="google/palm-2-chat-bison">Reasoning</option>-->
+                    <option value="openai/gpt-3.5-turbo">General Response</option>
+                    <option value="google/gemini-2.5-flash-preview">Reasoning</option>
                 </select>
             </div>
         </div>
         <div class="chat-messages" id="chat-messages"></div>
         <div class="chat-input">
-            <textarea id="user-input" placeholder="Type your message here..." rows="1"></textarea>
-            <button id="send-button">Send</button>
+            <textarea id="user-input" placeholder="Message TarynxAI..." rows="1"></textarea>
+            <button id="send-button" title="Send message">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M22 2L11 13"></path>
+                    <path d="M22 2L15 22L11 13L2 9L22 2Z"></path>
+                </svg>
+            </button>
         </div>
     </div>
     <script src="/js/script.js"></script>

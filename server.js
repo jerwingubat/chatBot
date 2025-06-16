@@ -6,12 +6,10 @@ const path = require('path');
 
 const app = express();
 
-// Middleware
 app.use(cors());
 app.use(express.json());
 app.use(express.static(path.join(__dirname, 'public')));
 
-// OpenRouter API endpoint
 app.post('/api/chat', async (req, res) => {
     try {
         const { messages, model } = req.body;
@@ -38,7 +36,6 @@ app.post('/api/chat', async (req, res) => {
     }
 });
 
-// Serve frontend
 app.get('*', (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
